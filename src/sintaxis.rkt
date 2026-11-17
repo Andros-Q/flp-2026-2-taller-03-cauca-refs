@@ -1,5 +1,8 @@
 #lang eopl
-;Autores: Nombre1 Codigo1, Nombre2 Codigo2
+;Autores: Andres Felipe Quiceno gil Codigo:2477362
+;Yonier Alejandro Vega Rojas Codigo:2477056
+;Jhon Fabricio Hurtado Marin Codigo: 2459472
+;Juan Esteban Aguirre Castañeda Codigo:2459676
 
 #|
   Taller 3 — Cauca con referencias y tipos.
@@ -25,10 +28,24 @@
 ;; Los comentarios de línea, los identificadores y los números.
 
 (define especificacion-lexica
-  '((white-sp (whitespace) skip)
+  '(;; Comentarios y espacios
     (comentario ("//" (arbno (not #\newline))) skip)
-    (identificador (letter (arbno (or letter digit "_" "?"))) symbol)
-    (numero (digit (arbno digit)) number)))
+    (espacio-blanco (whitespace) skip)
+
+    ;; Identificadores
+    (identificador
+     (letter (arbno (or letter digit "_" "?")))
+     symbol)
+
+    ;; Numeros enteros positivos y negativos
+    (numero (digit (arbno digit)) number)
+    (numero ("-" digit (arbno digit)) number)
+
+    ;; Numeros flotantes positivos y negativos
+    (numero (digit (arbno digit) "." digit (arbno digit)) number)
+    (numero ("-" digit (arbno digit) "." digit (arbno digit)) number)
+    
+    ))
 
 ;;; ==========================================================
 ;;; 2. Especificación gramatical
@@ -50,12 +67,113 @@
 (define especificacion-gramatical
   '((programa (expresion) a-program)
 
+     ;; Expresiones basicas
     (expresion (numero) lit-exp)
-    (expresion (primitiva "(" (separated-list expresion ",") ")") prim-exp)
+    (expresion (identificador) var-exp)
+    (expresion ("true") true-exp)
+    (expresion ("false") false-exp)
 
+    ;; Aplicacion de primitivas
+    (expresion
+     (primitiva "(" (separated-list expresion ",") ")")
+     prim-exp)
+
+    ;; Condicionales
+    (expresion
+     ("if" expresion "then" expresion "else" expresion "end")
+     if-exp)
+
+    ;; Ligadura local
+    (expresion
+     ("let" (arbno identificador "=" expresion)
+      "in" expresion "end")
+     let-exp)
+
+    ;; Procedimientos adaptado a estos nuevos cambios
+    (expresion
+     ("proc" "(" (separated-list identificador ":" tipo) ")"
+      expresion "end")
+     proc-exp) ;;proc-exp(ids, tipos, body)
+
+    ;; Aplicacion de procedimientos
+    (expresion
+     ("apply" expresion "(" (separated-list expresion ",") ")")
+     app-exp)
+
+    ;; Recursion mediante letrec adaptado a estos nuevos cambios
+    (expresion
+     ("letrec"
+      (arbno tipo identificador
+             "(" (separated-list identificador ":" tipo) ")"
+             "=" expresion)
+      "in" expresion "end")
+     letrec-exp)
+   ;;letrec-exp(tipos-res,proc-names,idss,tipos-args,bodies,body)
+    
+    ;; Seleccion mediante case
+    (expresion
+     ("case" expresion
+      (arbno "of" numero "=>" expresion)
+      "otherwise" "=>" expresion "end")
+     case-exp)
+
+    ;;Gramatica de las expresiones nuevas
+
+    (expresion ("newref" "(" expresion ")") newref-exp)
+    ;;newref-exp(exp)
+    (expresion ("deref" "(" expresion ")") deref-exp)
+     ;;deref-exp(exp)
+    (expresion ("setref" "(" expresion "," expresion ")") setref-exp)
+     ;;setref-exp(ref, exp)
+    (expresion ("swap" "(" expresion "," expresion ")") swap-exp)
+     ;;swap-exp(ref1, ref2)
+    (expresion ("begin" expresion (arbno ";" expresion) "end" ) begin-exp)
+     ;;begin-exp(exp, exps)
+    (expresion ("applyref" expresion "("
+     (separated-list identificador ",") ")") app-ref-exp)
+     ;;app-ref-exp(rator, ids)
+
+      ;;Gramatica de Tipos
     (tipo ("num") num-tipo)
+    ;;num-tipo()
+    (tipo ("bool") bool-tipo)
+    ;;bool-tipo()
+    (tipo ("refto" "(" tipo ")") ref-tipo)
+    ;;ref-tipo(t)
+    (tipo ("(" (arbno tipo) "->" tipo ")") proc-tipo)
+    ;;proc-tipo(args, res)
 
-    (primitiva ("+") sum-prim)))
+    
+    ;; Primitivas aritmeticas
+    (primitiva ("+") sum-prim)
+    (primitiva ("-") minus-prim)
+    (primitiva ("*") mult-prim)
+    (primitiva ("/") div-prim)
+    (primitiva ("add1") add-prim)
+    (primitiva ("sub1") sub-prim)
+
+    ;; Primitivas relacionales
+    (primitiva (">") mayor-prim)
+    (primitiva (">=") mayorigual-prim)
+    (primitiva ("<") menor-prim)
+    (primitiva ("<=") menorigual-prim)
+    (primitiva ("==") igual-prim)
+
+    ;; Primitivas booleanas originales
+    (primitiva ("not") not-prim)
+    (primitiva ("and") and-prim)
+    (primitiva ("or") or-prim)
+
+    ;; Primitivas adicionales
+    (primitiva ("xor") xor-prim)
+    (primitiva ("implica") implica-prim)
+    (primitiva ("abs") abs-prim)
+    (primitiva ("mcd") mcd-prim)
+    (primitiva ("mcm") mcm-prim)
+    (primitiva ("promedio") promedio-prim)
+    (primitiva ("entre") entre-prim)
+    
+    ))
 
 ;;; ==========================================================
 ;;; 3. Datatypes, scanner y parser
@@ -69,10 +187,14 @@
   (lambda () (sllgen:list-define-datatypes especificacion-lexica especificacion-gramatical)))
 
 ;; scanner : string -> lista de tokens
+;; Recibe el codigo fuente como una cadena de texto
+;; y devuelve la lista de tokens reconocidos.
 (define scanner
   (sllgen:make-string-scanner especificacion-lexica especificacion-gramatical))
 
 ;; parser : string -> programa
+;; Recibe el codigo fuente como una cadena de texto
+;; y devuelve el programa representado mediante el AST.
 (define parser
   (sllgen:make-string-parser especificacion-lexica especificacion-gramatical))
 
