@@ -91,7 +91,7 @@
 
     ;; Procedimientos adaptado a estos nuevos cambios
     (expresion
-     ("proc" "(" (separated-list identificador ":" tipo) ")"
+     ("proc" "(" (separated-list identificador ":" tipo ",") ")"
       expresion "end")
      proc-exp) ;;proc-exp(ids, tipos, body)
 
@@ -104,7 +104,7 @@
     (expresion
      ("letrec"
       (arbno tipo identificador
-             "(" (separated-list identificador ":" tipo) ")"
+             "(" (separated-list identificador ":" tipo ",") ")"
              "=" expresion)
       "in" expresion "end")
      letrec-exp)
@@ -140,7 +140,7 @@
     ;;bool-tipo()
     (tipo ("refto" "(" tipo ")") ref-tipo)
     ;;ref-tipo(t)
-    (tipo ("(" (arbno tipo) "->" tipo ")") proc-tipo)
+    (tipo ("(" (separated-list tipo "*") "->" tipo ")") proc-tipo)
     ;;proc-tipo(args, res)
 
     
