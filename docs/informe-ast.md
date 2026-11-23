@@ -262,7 +262,8 @@ flowchart LR
 ```
 El diagrama muestra que las referencias no cambian de posición: a sigue apuntando a la celda $0$ y b a la celda $1$. Únicamente se intercambian los contenidos de esas dos celdas.
 4. Estado del almacén durante el intercambio
-La plantilla general menciona transacciones atomic y reversión. Esas construcciones no existen en la gramática de Cauca de este taller, por lo cual esta sección presenta el estado del almacén durante swap, que sí es la operación de actualización solicitada por el enunciado.
+
+Esta sección complementa la traza anterior con una vista del almacén en cada paso del intercambio.
 
 Programa:
 let a = newref(7)
