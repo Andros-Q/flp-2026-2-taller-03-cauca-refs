@@ -17,12 +17,14 @@ Esta tabla es lo que identifica al grupo. Sin ella, o con algún dato
 incompleto, la entrega pierde el 20 %; quien no aparezca aquí no cuenta como
 parte del grupo.
 
+## Integrantes
+
 | Nombre completo | Código | Correo institucional |
 |---|---|---|
-| | | |
-| | | |
-| | | |
-| | | |
+| Andres Felipe Quiceno Gil | 2477362 | quiceno.andres@correounivalle.edu.co |
+| Yonier Alejandro Vega Rojas | 2477056 | yonier.vega@correounivalle.edu.co |
+| Jhon Fabricio Hurtado Marin | 2459472 | hurtado.jhoan@correounivalle.edu.co |
+| Juan Esteban Aguirre Castañeda | 2459676 | juan.esteban.aguirre@correounivalle.edu.co |
 
 ## Cómo se entrega
 
