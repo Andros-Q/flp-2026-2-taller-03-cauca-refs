@@ -222,9 +222,51 @@ end") "num"))
                                               in let f = proc (u : refto(num)) deref(u) end
                                                  in applyref f (z) end end"))))))
 
+;; pruebas extra de la parte 2: paso por referencia
+(define parte-2-extra
+  (test-suite
+   "Parte 2: ejemplos extra de paso por referencia"
+   (test-case "applyref incrementa la misma celda dos veces"
+              (check-equal? (corre "let c = newref(0)
+                                    in let inc = proc (u : refto(num))
+                                                   setref(u, add1(deref(u)))
+                                                end
+                                       in begin applyref inc (c); applyref inc (c); deref(c) end
+                                       end
+                                    end") 2))
+   (test-case "apply incrementa una copia y deja la celda original"
+              (check-equal? (corre "let c = newref(0)
+                                    in let inc = proc (u : refto(num))
+                                                   setref(u, add1(deref(u)))
+                                                end
+                                       in begin apply inc (c); apply inc (c); deref(c) end
+                                       end
+                                    end") 0))
+   (test-case "applyref intercambia dos celdas"
+              (check-equal? (corre "let a = newref(1)
+                                    b = newref(2)
+                                    in let f = proc (u : refto(num), v : refto(num))
+                                                 swap(u, v)
+                                              end
+                                       in begin applyref f (a, b); -(deref(a), deref(b)) end
+                                       end
+                                    end") 1))
+   (test-case "applyref rechaza un argumento que no es referencia"
+              (check-exn exn:fail?
+                         (lambda () (corre "let z = true
+                                            in let f = proc (u : refto(num)) deref(u) end
+                                               in applyref f (z) end
+                                            end"))))
+   (test-case "applyref rechaza un operador que no es procedimiento"
+              (check-exn exn:fail?
+                         (lambda () (corre "let x = newref(1)
+                                            in applyref true (x) end
+                                            end"))))))
+
 (define fallidas
   (+ (run-tests almacen)
      (run-tests paso-por-referencia)
+     (run-tests parte-2-extra)
      (run-tests bien-tipados)
      (run-tests mal-tipados)))
 
