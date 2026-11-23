@@ -92,6 +92,52 @@ end") 99))
               (check-exn exn:fail? (lambda () (corre "setref(1, 2)")))
               (check-exn exn:fail? (lambda () (corre "swap(1, newref(2))"))))))
 
+;;; ==========================================================
+;;; ejemplos de la parte 1
+;;; ==========================================================
+
+;; diez ejemplos cortos que cubren las cinco expresiones nuevas
+;; (newref, deref, setref, swap y begin), los dos casos de alias y
+;; los tres errores del enunciado.
+(define ejemplos-parte-1
+  (test-suite
+   "Parte 1: ejemplos de ejecucion"
+   (test-case "newref reserva una celda y deref la lee"
+              (check-equal? (corre "deref(newref(10))") 10)
+              (check-equal? (corre "deref(newref(true))") #t)
+              (check-equal? (corre "deref(deref(newref(newref(7))))") 7))
+   (test-case "setref escribe y retorna 1"
+              (check-equal? (corre "setref(newref(0), 7)") 1)
+              (check-equal? (corre "let c = newref(3) in begin setref(c, 8); deref(c) end end") 8))
+   (test-case "swap retorna el contenido anterior de la segunda"
+              (check-equal? (corre "let a = newref(5) b = newref(6) in swap(a, b) end") 6))
+   (test-case "swap deja los contenidos cambiados"
+              (check-equal? (corre "let a = newref(5)
+                                    b = newref(6)
+                                    in begin swap(a, b); -(deref(a), deref(b)) end
+                                    end") 1))
+   (test-case "begin respeta el orden de izquierda a derecha"
+              (check-equal? (corre "begin 10; 20; 30 end") 30))
+   (test-case "alias: dos nombres para la misma celda"
+              (check-equal? (corre "let celda = newref(1)
+                                    in let otro = celda
+                                       in begin setref(otro, 99); deref(celda) end
+                                       end
+                                    end") 99))
+   (test-case "alias con swap: escribir por un nombre se ve por el otro"
+              (check-equal? (corre "let a = newref(1)
+                                    in let b = a
+                                           c = newref(9)
+                                       in begin swap(b, c); deref(a) end
+                                       end
+                                    end") 9))
+   (test-case "error: deref sobre algo que no es referencia"
+              (check-exn exn:fail? (lambda () (corre "deref(5)"))))
+   (test-case "error: setref sobre algo que no es referencia"
+              (check-exn exn:fail? (lambda () (corre "setref(1, 2)"))))
+   (test-case "error: swap con algo que no es referencia"
+              (check-exn exn:fail? (lambda () (corre "swap(1, newref(2))"))))))
+
 (define paso-por-referencia
   (test-suite
    "Parte 2: paso por referencia"
@@ -222,9 +268,52 @@ end") "num"))
                                               in let f = proc (u : refto(num)) deref(u) end
                                                  in applyref f (z) end end"))))))
 
+;; pruebas extra de la parte 2: paso por referencia
+(define parte-2-extra
+  (test-suite
+   "Parte 2: ejemplos extra de paso por referencia"
+   (test-case "applyref incrementa la misma celda dos veces"
+              (check-equal? (corre "let c = newref(0)
+                                    in let inc = proc (u : refto(num))
+                                                   setref(u, add1(deref(u)))
+                                                end
+                                       in begin applyref inc (c); applyref inc (c); deref(c) end
+                                       end
+                                    end") 2))
+   (test-case "apply incrementa una copia y deja la celda original"
+              (check-equal? (corre "let c = newref(0)
+                                    in let inc = proc (u : refto(num))
+                                                   setref(u, add1(deref(u)))
+                                                end
+                                       in begin apply inc (c); apply inc (c); deref(c) end
+                                       end
+                                    end") 0))
+   (test-case "applyref intercambia dos celdas"
+              (check-equal? (corre "let a = newref(1)
+                                    b = newref(2)
+                                    in let f = proc (u : refto(num), v : refto(num))
+                                                 swap(u, v)
+                                              end
+                                       in begin applyref f (a, b); -(deref(a), deref(b)) end
+                                       end
+                                    end") 1))
+   (test-case "applyref rechaza un argumento que no es referencia"
+              (check-exn exn:fail?
+                         (lambda () (corre "let z = true
+                                            in let f = proc (u : refto(num)) deref(u) end
+                                               in applyref f (z) end
+                                            end"))))
+   (test-case "applyref rechaza un operador que no es procedimiento"
+              (check-exn exn:fail?
+                         (lambda () (corre "let x = newref(1)
+                                            in applyref true (x) end
+                                            end"))))))
+
 (define fallidas
   (+ (run-tests almacen)
+     (run-tests ejemplos-parte-1)
      (run-tests paso-por-referencia)
+     (run-tests parte-2-extra)
      (run-tests bien-tipados)
      (run-tests mal-tipados)))
 
