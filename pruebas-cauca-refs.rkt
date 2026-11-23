@@ -447,6 +447,45 @@ end") "num"))
        (mensaje-de "variable_inexistente")
        "Variable no declarada: variable_inexistente")))))
 
+;;; ==========================================================
+;;; Pruebas extra: aridad de primitivas en el chequeador
+;;; ==========================================================
+
+;; aridad-primitivas-extra : test-suite
+;; Comprueba que el chequeador exija las mismas cantidades de argumentos
+;; que el interprete para and, or, mcd y mcm.
+(define aridad-primitivas-extra
+  (test-suite
+   "Parte 3: aridad de primitivas"
+
+   ;; Cuatro programas que deben rechazarse por aridad insuficiente.
+   (test-case "and rechaza un solo argumento"
+              (check-true
+               (contiene? (mensaje-de "and(true)")
+                          "La primitiva and espera 2 argumentos y recibio 1")))
+   (test-case "or rechaza un solo argumento"
+              (check-true
+               (contiene? (mensaje-de "or(true)")
+                          "La primitiva or espera 2 argumentos y recibio 1")))
+   (test-case "mcd rechaza un solo argumento"
+              (check-true
+               (contiene? (mensaje-de "mcd(6)")
+                          "La primitiva mcd espera al menos 2 argumentos y recibio 1")))
+   (test-case "mcm rechaza un solo argumento"
+              (check-true
+               (contiene? (mensaje-de "mcm(6)")
+                          "La primitiva mcm espera al menos 2 argumentos y recibio 1")))
+
+   ;; Cuatro programas validos: deben conservar su tipo de retorno.
+   (test-case "and con dos argumentos"
+              (check-equal? (tipo-de "and(true, false)") "bool"))
+   (test-case "or con dos argumentos"
+              (check-equal? (tipo-de "or(true, false)") "bool"))
+   (test-case "mcd con dos argumentos"
+              (check-equal? (tipo-de "mcd(6, 12)") "num"))
+   (test-case "mcm con dos argumentos"
+              (check-equal? (tipo-de "mcm(6, 12)") "num"))))
+
 (define fallidas
   (+ (run-tests almacen)
      (run-tests ejemplos-parte-1)
@@ -456,6 +495,7 @@ end") "num"))
      (run-tests mal-tipados)
      (run-tests programas_bien_tipados)
      (run-tests programas_mal_tipados)
+     (run-tests aridad-primitivas-extra)
      ))
 
 (eopl:printf "~%==========================================~%")
