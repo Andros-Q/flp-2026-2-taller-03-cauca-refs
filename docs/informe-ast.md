@@ -1,5 +1,5 @@
-Informe de AST — Taller 3: Memoria y disciplina
-Curso: Fundamentos de Interpretación y Compilación de Lenguajes de Programación — Universidad del Valle, Sede Tuluá.
+# Informe de AST — Taller 3: Memoria y disciplina
+## Curso: Fundamentos de Interpretación y Compilación de Lenguajes de Programación — Universidad del Valle, Sede Tuluá.
 
 Integrantes del grupo:
 | Nombre completo | Código | Correo institucional |
