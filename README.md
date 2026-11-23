@@ -1,7 +1,10 @@
-Taller 3 — Cauca con referencias y tipos
-Curso: Fundamentos de Interpretación y Compilación de Lenguajes de Programación
-Institución: Escuela de Ingeniería de Sistemas y Computación, Universidad del Valle
-Docente: Carlos Andrés Delgado Saavedra
+# Taller 3 — Cauca con referencias y tipos
+
+**Curso:** Fundamentos de Interpretación y Compilación de Lenguajes de Programación
+
+**Institución:** Escuela de Ingeniería de Sistemas y Computación, Universidad del Valle
+
+**Docente:** Carlos Andrés Delgado Saavedra
 
 Este proyecto amplía el lenguaje Cauca con un almacén de memoria indexado por referencias, operaciones de lectura y escritura, intercambio de contenidos, paso por referencia y chequeo estático de tipos. La implementación se desarrolló en Racket con #lang eopl, utilizando SLLGEN para el análisis sintáctico.
 

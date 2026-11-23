@@ -1,5 +1,5 @@
-Informe de corrección — Taller 3: Memoria y disciplina
-Curso: Fundamentos de Interpretación y Compilación de Lenguajes de Programación
+# Informe de corrección — Taller 3: Memoria y disciplina
+## Curso: Fundamentos de Interpretación y Compilación de Lenguajes de Programación
 Institución: Universidad del Valle, Sede Tuluá
 
 Integrantes del grupo:
