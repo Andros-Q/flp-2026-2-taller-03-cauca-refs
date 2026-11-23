@@ -268,6 +268,8 @@ end") "num"))
                                               in let f = proc (u : refto(num)) deref(u) end
                                                  in applyref f (z) end end"))))))
 
+
+
 ;; pruebas extra de la parte 2: paso por referencia
 (define parte-2-extra
   (test-suite
@@ -309,13 +311,152 @@ end") "num"))
                                             in applyref true (x) end
                                             end"))))))
 
+;;Pruebas de la Parte 3: 8 programas bien tipados
+(define programas_bien_tipados
+  (test-suite
+   "Parte 3: programas bien tipados sin errores de tipamiento"
+
+   (test-case "procedimiento con retorno booleano"
+     (check-equal?
+      (tipo-de "proc (x : num) >(x, 5) end")
+      "(num -> bool)"))
+
+   (test-case "if con resultado booleano"
+     (check-equal?
+      (tipo-de "if <(n, m) then true else false end")
+      "bool"))
+
+   (test-case "variable calculada dentro de let"
+     (check-equal?
+      (tipo-de "let resultado = *(n, p) in +(resultado, 10) end")
+      "num"))
+
+   (test-case "aplicacion de procedimiento con dos parametros"
+     (check-equal?
+      (tipo-de
+       "let sumar = proc (x : num, y : num) +(x, y) end
+        in apply sumar(+(2, 3), *(4, 2)) end")
+      "num"))
+
+   (test-case "referencia anidada"
+     (check-equal?
+      (tipo-de "newref(newref(+(3, 4)))")
+      "refto(refto(num))"))
+
+   (test-case "begin retorna booleano"
+     (check-equal?
+      (tipo-de
+       "begin
+          +(n, 5);
+          *(m, 2);
+          >(p, q)
+        end")
+      "bool"))
+
+   (test-case "case con resultados booleanos"
+     (check-equal?
+      (tipo-de
+       "case n
+          of 1 => true
+          of 2 => false
+          otherwise => >(p, q)
+        end")
+      "bool"))
+
+   (test-case "letrec con procedimiento recursivo"
+     (check-equal?
+      (tipo-de
+       "letrec bool positivo(k : num) =
+          if ==(k, 0)
+          then false
+          else if >(k, 0)
+               then true
+               else apply positivo(sub1(k))
+               end
+          end
+        in apply positivo(5) end")
+      "bool"))))
+
+;;9  programas mal tipados con mensaje de error diferente en cada uno para cubrir los posibles casos de error solicitados
+(define programas_mal_tipados
+  (test-suite
+   "Parte 3: programas mal tipados
+     cada uno con su mensaje de error del chequeador estatico de tipos"
+
+   (test-case "condicion numerica en if"
+     (check-true
+      (contiene?
+       (mensaje-de "if +(n, 1) then true else false end")
+       "La condicion del if debe ser bool, se encontro num")))
+
+   (test-case "ramas incompatibles en if"
+     (check-true
+      (contiene?
+       (mensaje-de "if true then >(n, m) else 15 end")
+       "Las ramas del if deben coincidir: bool vs num")))
+
+   (test-case "aplicacion sobre una variable numerica"
+     (check-true
+      (contiene?
+       (mensaje-de "apply n(3)")
+       "Se intento aplicar un valor de tipo num")))
+
+   (test-case "aplicacion con argumentos insuficientes"
+     (check-true
+      (contiene?
+       (mensaje-de
+        "let operacion = proc (a : num, b : num, c : num)
+                           +(+(a, b), c)
+                         end
+         in apply operacion(4, 5) end")
+       "El procedimiento espera 3 argumentos y recibio 2")))
+
+   (test-case "argumento booleano donde se espera numero"
+     (check-true
+      (contiene?
+       (mensaje-de
+        "let duplicar = proc (x : num) *(x, 2) end
+         in apply duplicar(true) end")
+       "El argumento 1 debe ser num, se encontro bool")))
+
+   (test-case "deref sobre un booleano"
+     (check-true
+      (contiene?
+       (mensaje-de "deref(true)")
+       "deref espera refto(t), se encontro bool")))
+
+   (test-case "escritura incompatible en una referencia"
+     (check-true
+      (contiene?
+       (mensaje-de
+        "let dato = newref(true)
+         in setref(dato, 25) end")
+       "La celda guarda bool y se intento escribir num")))
+
+   (test-case "retorno incorrecto en procedimiento recursivo"
+     (check-true
+      (contiene?
+       (mensaje-de
+        "letrec bool verificar(x : num) = +(x, 1)
+         in apply verificar(4) end")
+       "El procedimiento verificar declara bool y su cuerpo da num")))
+
+   (test-case "variable inexistente"
+     (check-true
+      (contiene?
+       (mensaje-de "variable_inexistente")
+       "Variable no declarada: variable_inexistente")))))
+
 (define fallidas
   (+ (run-tests almacen)
      (run-tests ejemplos-parte-1)
      (run-tests paso-por-referencia)
      (run-tests parte-2-extra)
      (run-tests bien-tipados)
-     (run-tests mal-tipados)))
+     (run-tests mal-tipados)
+     (run-tests programas_bien_tipados)
+     (run-tests programas_mal_tipados)
+     ))
 
 (eopl:printf "~%==========================================~%")
 (eopl:printf "  pruebas fallidas en total: ~s~%" fallidas)
