@@ -148,9 +148,14 @@
                 (cerradura ids body env))
 
       (app-exp (rator rands)
-               (let* ((proc (evaluar-expresion rator env))
-                      (args (evaluar-lista rands env)))
-                 (apply-procedure proc args)))
+         (let* ((proc (evaluar-expresion rator env))
+          (args (evaluar-lista rands env)))
+        (if (procval? proc)
+         (apply-procedure proc args)
+           (eopl:error 'evaluar-expresion
+                    "Se esperaba un procedimiento, se recibió: ~s"
+                    proc)))
+       )
 
       (letrec-exp (tipos-res proc-names idss tipos-args bodies body)
                   (evaluar-expresion
