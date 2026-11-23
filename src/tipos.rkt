@@ -129,17 +129,28 @@
       (promedio-prim () "promedio") (entre-prim () "entre"))))
 
 ;; aridad-de-primitiva : primitiva -> integer | #f
-;; La cantidad exacta de argumentos que exige, o #f si admite cualquier
-;; cantidad (>= 1).
+;; Devuelve la cantidad exacta de argumentos, o #f cuando la primitiva
+;; admite una cantidad variable. En ese caso se revisa el mínimo aparte.
 (define aridad-de-primitiva
   (lambda (prim)
     (cases primitiva prim
       (add-prim () 1) (sub-prim () 1) (abs-prim () 1) (not-prim () 1)
       (mayor-prim () 2) (mayorigual-prim () 2) (menor-prim () 2)
       (menorigual-prim () 2) (igual-prim () 2)
+      (and-prim () 2) (or-prim () 2)
       (xor-prim () 2) (implica-prim () 2)
       (entre-prim () 3)
       (else #f))))
+
+;; minimo-de-primitiva : primitiva -> integer
+;; Indica el mínimo de argumentos de una primitiva de aridad variable.
+;; mcd y mcm requieren al menos dos; las otras variables, al menos uno.
+(define minimo-de-primitiva
+  (lambda (prim)
+    (cases primitiva prim
+      (mcd-prim () 2)
+      (mcm-prim () 2)
+      (else 1))))
 
 ;; tipo-args-de-primitiva : primitiva -> tipo
 ;; El tipo que la primitiva exige de cada uno de sus argumentos.
@@ -162,7 +173,7 @@
       (promedio-prim () (num-tipo))
       (else (bool-tipo)))))
 
-;; verificar-args-primitiva : primitiva x tipo x lista de tipos x integer -> void
+;; verificar-args-primitiva : primitiva x tipo x lista de tipos x integer -> symbol
 ;; Revisa uno a uno que cada argumento tenga el tipo exigido.
 (define verificar-args-primitiva
   (lambda (prim esperado tipos i)
@@ -178,20 +189,25 @@
           (verificar-args-primitiva prim esperado (cdr tipos) (+ i 1))))))
 
 ;; tipo-de-primitiva : primitiva x lista de tipos -> tipo
-;; Lo que cada primitiva exige de sus argumentos y lo que retorna: las
-;; aritméticas retornan num; las relacionales, las booleanas y entre
-;; retornan bool. Verifica cantidad y tipo de los argumentos.
+;; Verifica la aridad y los tipos de los argumentos. Las aritméticas
+;; retornan num; las relacionales, booleanas y entre retornan bool.
 (define tipo-de-primitiva
   (lambda (prim tipos)
-    (let ((aridad (aridad-de-primitiva prim)))
+    (let ((aridad (aridad-de-primitiva prim))
+          (minimo (minimo-de-primitiva prim))
+          (cantidad (length tipos)))
       (begin
-        (if (if aridad (not (= aridad (length tipos))) (null? tipos))
-            (eopl:error 'tipo-de-primitiva
-                        "La primitiva ~a espera ~a argumentos y recibio ~a"
-                        (primitiva->texto prim)
-                        (if aridad aridad "al menos 1")
-                        (length tipos))
-            'ok)
+        (if aridad
+            (if (= aridad cantidad)
+                'ok
+                (eopl:error 'tipo-de-primitiva
+                            "La primitiva ~a espera ~a argumentos y recibio ~a"
+                            (primitiva->texto prim) aridad cantidad))
+            (if (>= cantidad minimo)
+                'ok
+                (eopl:error 'tipo-de-primitiva
+                            "La primitiva ~a espera al menos ~a argumentos y recibio ~a"
+                            (primitiva->texto prim) minimo cantidad)))
         (verificar-args-primitiva prim (tipo-args-de-primitiva prim) tipos 1)
         (tipo-res-de-primitiva prim)))))
 
